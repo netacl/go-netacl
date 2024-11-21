@@ -68,7 +68,11 @@ func (c *APICLient) Request(endpoint, method, contentType string, body any) ([]b
 	}
 
 	if res.StatusCode >= 400 {
-		return nil, fmt.Errorf("[%v] %v", res.StatusCode, string(raw))
+		if err = extract(raw); err == nil {
+			return nil, fmt.Errorf("[%v] %v", res.StatusCode, string(raw))
+		} else {
+			return nil, err
+		}
 	}
 	return raw, nil
 }
