@@ -1,9 +1,18 @@
 package netacl
 
 import (
-	"log"
 	"testing"
+
+	"github.com/roolps/logging"
 )
+
+func TestGetRecords(t *testing.T) {
+	setTestKey(t)
+	r := &SRVRecords{}
+	if err := c.GetRecords("mcsh.io", r); err != nil {
+		t.Error(err)
+	}
+}
 
 func TestCreateNewSRVRecord(t *testing.T) {
 	setTestKey(t)
@@ -61,5 +70,31 @@ func TestGetBodyFromCreateSRVRecordRequest(t *testing.T) {
 	if len(r) == 0 {
 		t.Error("no records returned, expected 1")
 	}
-	log.Println(r[0].ID)
+	logging.Debug(r[0].ID)
+}
+
+func TestDeleteRecordsWithInvalidID(t *testing.T) {
+	setTestKey(t)
+	if err := c.DeleteRecords("mcsh.io", &SRVRecords{{ID: "testid"}}); err == nil {
+		t.Error("expected error, received none")
+	} else {
+		if err != ErrRecordDoesntExistInZone {
+			t.Errorf("unexpected error returned: %v", err)
+		}
+	}
+}
+
+func TestDeleteRecordsWithValidID(t *testing.T) {
+	setTestKey(t)
+	r := &SRVRecords{}
+	if err := c.GetRecords("mcsh.io", r); err != nil {
+		t.Errorf("unexpected error returned: %v", err)
+	}
+	for _, rec := range *r {
+		logging.Debug(rec.ID)
+	}
+
+	if err := c.DeleteRecords("mcsh.io", &SRVRecords{{ID: "X21pbmVjcmFmdC5fdGNwLnJvb2xwcy10ZXN0LTMubWNzaC5pby9TUlZ8MzEy"}}); err != nil {
+		t.Errorf("unexpected error returned: %v", err)
+	}
 }

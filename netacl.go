@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/roolps/logging"
 )
 
 var c = &APICLient{}
@@ -40,6 +42,7 @@ func (c *APICLient) Request(endpoint, method, contentType string, body any) ([]b
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal request body: %v", err)
 		}
+		logging.Debugf("payload: %v", string(raw))
 	}
 
 	// create http request

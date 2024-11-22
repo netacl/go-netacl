@@ -6,8 +6,10 @@ import (
 )
 
 type Domains struct {
-	Owned   []string `json:"owned"`
-	Managed []string `json:"managed"`
+	Owned []string `json:"owned"`
+
+	// map keys are type 'username (email)'
+	Managed map[string][]string `json:"managed"`
 }
 
 func (c *APICLient) GetDomains() (*Domains, error) {
@@ -16,12 +18,8 @@ func (c *APICLient) GetDomains() (*Domains, error) {
 		return nil, err
 	}
 	data := &Domains{}
-	json.Unmarshal(raw, data)
-
-	// add back error handling later when object received as correct type
-	// if err := json.Unmarshal(raw, data); err != nil {
-	// 	return nil, err
-	// }
-
+	if err := json.Unmarshal(raw, data); err != nil {
+		return nil, err
+	}
 	return data, nil
 }

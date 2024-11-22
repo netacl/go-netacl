@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	ErrRecordExists error = errors.New("record with the same data already exists")
+	ErrRecordExists            error = errors.New("same record data already exists")
+	ErrRecordDoesntExistInZone error = errors.New("the record doesn't belong to the zone")
 )
 
 type apierror struct {
@@ -21,6 +22,12 @@ func extract(raw []byte) error {
 	}
 	switch e.Code {
 	case 568543:
+		switch e.Desc {
+		case "The record does not belong to the zone":
+			return ErrRecordDoesntExistInZone
+		case "Same Record Data already exists":
+			return ErrRecordExists
+		}
 		return ErrRecordExists
 	default:
 		if e.Desc == "" {
