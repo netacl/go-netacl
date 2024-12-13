@@ -20,6 +20,10 @@ const (
 
 type APICLient struct{ Secret string }
 
+func EnableDebug() {
+	logging.EnableDebug()
+}
+
 func NewClient(apikey string) (*APICLient, error) {
 	if apikey == "" {
 		return nil, errors.New("api key cannot be empty")

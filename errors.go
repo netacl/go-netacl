@@ -10,6 +10,7 @@ var (
 	ErrRecordDoesntExistInZone error = errors.New("the record doesn't belong to the zone")
 	ErrRecordDataNotFound      error = errors.New("record data not found")
 	ErrRecordListNotFound      error = errors.New("record list not found")
+	ErrNotFound                error = errors.New("null")
 )
 
 type apierror struct {
@@ -33,6 +34,8 @@ func extract(raw []byte) error {
 			return ErrRecordDataNotFound
 		case "Record List not found":
 			return ErrRecordListNotFound
+		case "null":
+			return ErrNotFound
 		}
 		return errors.New(e.Desc)
 	default:

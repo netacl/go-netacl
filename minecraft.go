@@ -72,3 +72,8 @@ func (c *APICLient) NewProxy(p *MinecraftProxy) error {
 	_, err := c.Request(fmt.Sprintf("/minecraft-proxy/%v", p.Domain), http.MethodPost, Application_json, map[string]string{"proxy_to": fmt.Sprintf("%v:%v", p.Address, p.Port)})
 	return err
 }
+
+func (c *APICLient) DeleteProxy(name string) error {
+	_, err := c.Request(fmt.Sprintf("/minecraft-proxy/%v", name), http.MethodDelete, Application_json, nil)
+	return err
+}

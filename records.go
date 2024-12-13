@@ -22,7 +22,7 @@ func (c *APICLient) NewRecords(domain string, r Records) error {
 	return r.add(domain, c)
 }
 
-// create new dns record
+// delete existing dns records
 func (c *APICLient) DeleteRecords(domain string, r Records) error {
 	if r == nil {
 		return errors.New("records cannot be nil")
