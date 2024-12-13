@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type Records interface {
@@ -15,15 +16,24 @@ type Records interface {
 
 // create new dns record
 func (c *APICLient) NewRecords(domain string, r Records) error {
+	if r == nil {
+		return errors.New("records cannot be nil")
+	}
 	return r.add(domain, c)
 }
 
 // create new dns record
 func (c *APICLient) DeleteRecords(domain string, r Records) error {
+	if r == nil {
+		return errors.New("records cannot be nil")
+	}
 	return r.remove(domain, c)
 }
 
 func (c *APICLient) GetRecords(domain string, r Records) error {
+	if r == nil {
+		return errors.New("records cannot be nil")
+	}
 	return r.get(domain, c)
 }
 
@@ -33,10 +43,14 @@ type payload struct {
 }
 
 type record struct {
-	Name string `json:"name"`
-	Data struct {
-		SRV *SRVRecord `json:"SRV,omitempty"`
-	} `json:"data"`
+	Name string     `json:"name"`
+	Data recordData `json:"data"`
+}
+
+type recordData struct {
+	SRV   *SRVRecord `json:"SRV,omitempty"`
+	A     string     `json:"A,omitempty"`
+	CNAME string     `json:"CNAME,omitempty"`
 }
 
 type SRVRecords []*SRVRecord
@@ -74,18 +88,13 @@ func (r *SRVRecords) get(domain string, c *APICLient) error {
 }
 
 func (r *SRVRecords) add(domain string, c *APICLient) error {
-	if r == nil {
-		return errors.New("records cannot be nil")
-	}
 	pl := []map[string]payload{}
 	for _, rec := range *r {
 		pl = append(pl, map[string]payload{
 			"Add": {
 				Obj: &record{
 					Name: rec.Name,
-					Data: struct {
-						SRV *SRVRecord "json:\"SRV,omitempty\""
-					}{
+					Data: recordData{
 						SRV: rec,
 					},
 				},
@@ -133,4 +142,126 @@ func (r *SRVRecords) remove(domain string, c *APICLient) error {
 
 	_, err := c.Request(fmt.Sprintf("/dns/%v", domain), http.MethodPatch, Application_json, pl)
 	return err
+}
+
+type ARecords []*ARecord
+
+type ARecord struct {
+	ID     string `json:"-"`
+	Name   string `json:"-"`
+	Target string `json:"-"`
+}
+
+// TO DO: GET A RECORDS
+func (r *ARecords) get(domain string, c *APICLient) error {
+	return nil
+}
+
+func (r *ARecords) add(domain string, c *APICLient) error {
+	pl := []map[string]payload{}
+	for _, rec := range *r {
+		if !strings.Contains(rec.Name, domain) {
+			rec.Name = fmt.Sprintf("%v.%v", rec.Name, domain)
+		}
+		pl = append(pl, map[string]payload{
+			"Add": {
+				Obj: &record{
+					Name: rec.Name,
+					Data: recordData{
+						A: rec.Target,
+					},
+				},
+			},
+		})
+	}
+	raw, err := c.Request(fmt.Sprintf("/dns/%v", domain), http.MethodPatch, Application_json, pl)
+	if err != nil {
+		return err
+	}
+
+	result := []map[string]payload{}
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return err
+	}
+
+	records := ARecords{}
+	for _, added := range result {
+		if res, ok := added["Added"]; ok {
+			rec := &ARecord{}
+
+			rec.ID = res.ID
+			rec.Name = res.Obj.Name
+			rec.Target = res.Obj.Data.A
+
+			records = append(records, rec)
+		}
+	}
+	*r = records
+	return nil
+}
+
+// TO DO: REMOVAL OF A RECORDS
+func (r *ARecords) remove(domain string, c *APICLient) error {
+	return nil
+}
+
+type CNAMERecords []*CNAMERecord
+
+type CNAMERecord struct {
+	ID     string `json:"-"`
+	Name   string `json:"-"`
+	Target string `json:"-"`
+}
+
+// TO DO: GET CNAME RECORDS
+func (r *CNAMERecords) get(domain string, c *APICLient) error {
+	return nil
+}
+
+func (r *CNAMERecords) add(domain string, c *APICLient) error {
+	pl := []map[string]payload{}
+	for _, rec := range *r {
+		if !strings.Contains(rec.Name, domain) {
+			rec.Name = fmt.Sprintf("%v.%v", rec.Name, domain)
+		}
+		pl = append(pl, map[string]payload{
+			"Add": {
+				Obj: &record{
+					Name: rec.Name,
+					Data: recordData{
+						CNAME: rec.Target,
+					},
+				},
+			},
+		})
+	}
+	raw, err := c.Request(fmt.Sprintf("/dns/%v", domain), http.MethodPatch, Application_json, pl)
+	if err != nil {
+		return err
+	}
+
+	result := []map[string]payload{}
+	if err := json.Unmarshal(raw, &result); err != nil {
+		return err
+	}
+
+	records := CNAMERecords{}
+	for _, added := range result {
+		if res, ok := added["Added"]; ok {
+			rec := &CNAMERecord{}
+
+			rec.ID = res.ID
+			rec.Name = res.Obj.Name
+			rec.Target = res.Obj.Data.CNAME
+
+			records = append(records, rec)
+		}
+	}
+	*r = records
+	return nil
+}
+
+// TO DO: REMOVAL OF CNAME RECORDS
+func (r *CNAMERecords) remove(domain string, c *APICLient) error {
+	return nil
 }

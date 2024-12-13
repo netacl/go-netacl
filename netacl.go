@@ -46,6 +46,7 @@ func (c *APICLient) Request(endpoint, method, contentType string, body any) ([]b
 	}
 
 	// create http request
+	logging.Debugf("%v:%v", method, endpoint)
 	req, err = http.NewRequest(method, fmt.Sprintf("https://netacl.com/api/%v", endpoint), bytes.NewBuffer(raw))
 	if err != nil {
 		return nil, err

@@ -1,6 +1,7 @@
 package netacl
 
 import (
+	"log"
 	"testing"
 
 	"github.com/roolps/logging"
@@ -9,16 +10,17 @@ import (
 func TestGetRecords(t *testing.T) {
 	setTestKey(t)
 	r := &SRVRecords{}
-	if err := c.GetRecords("mcsh.io", r); err != nil {
+	if err := c.GetRecords("peanuts.org", r); err != nil {
 		t.Error(err)
 	}
+	log.Println(r)
 }
 
 func TestCreateNewSRVRecord(t *testing.T) {
 	setTestKey(t)
-	if err := c.NewRecords("mcsh.io", &SRVRecords{
+	if err := c.NewRecords("peanuts.org", &SRVRecords{
 		{
-			Name:     "_minecraft._tcp.extra.mcsh.io",
+			Name:     "_minecraft._tcp.extra.peanuts.org",
 			Priority: 0,
 			Weight:   5,
 			Port:     25565,
@@ -31,9 +33,9 @@ func TestCreateNewSRVRecord(t *testing.T) {
 
 func TestCreateDuplicateSRVRecord(t *testing.T) {
 	setTestKey(t)
-	if err := c.NewRecords("mcsh.io", &SRVRecords{
+	if err := c.NewRecords("peanuts.org", &SRVRecords{
 		{
-			Name:     "_minecraft._tcp.roolps.mcsh.io",
+			Name:     "_minecraft._tcp.roolps.peanuts.org",
 			Priority: 0,
 			Weight:   5,
 			Port:     25565,
@@ -52,7 +54,7 @@ func TestGetBodyFromCreateSRVRecordRequest(t *testing.T) {
 	setTestKey(t)
 	recs := &SRVRecords{
 		{
-			Name:     "_minecraft._tcp.roolps-test-3.mcsh.io",
+			Name:     "_minecraft._tcp.roolps-test-0.peanuts.org",
 			Priority: 0,
 			Weight:   5,
 			Port:     25566,
@@ -60,7 +62,7 @@ func TestGetBodyFromCreateSRVRecordRequest(t *testing.T) {
 		},
 	}
 
-	if err := c.NewRecords("mcsh.io", recs); err != nil {
+	if err := c.NewRecords("peanuts.org", recs); err != nil {
 		t.Error(err)
 	}
 	if recs == nil {
@@ -75,7 +77,7 @@ func TestGetBodyFromCreateSRVRecordRequest(t *testing.T) {
 
 func TestDeleteRecordsWithInvalidID(t *testing.T) {
 	setTestKey(t)
-	if err := c.DeleteRecords("mcsh.io", &SRVRecords{{ID: "testid"}}); err == nil {
+	if err := c.DeleteRecords("peanuts.org", &SRVRecords{{ID: "testid"}}); err == nil {
 		t.Error("expected error, received none")
 	} else {
 		if err != ErrRecordDoesntExistInZone {
@@ -87,14 +89,29 @@ func TestDeleteRecordsWithInvalidID(t *testing.T) {
 func TestDeleteRecordsWithValidID(t *testing.T) {
 	setTestKey(t)
 	r := &SRVRecords{}
-	if err := c.GetRecords("mcsh.io", r); err != nil {
+	if err := c.GetRecords("peanuts.org", r); err != nil {
 		t.Errorf("unexpected error returned: %v", err)
 	}
 	for _, rec := range *r {
 		logging.Debug(rec.ID)
+		logging.Debug(rec.Name)
 	}
 
-	if err := c.DeleteRecords("mcsh.io", &SRVRecords{{ID: "X21pbmVjcmFmdC5fdGNwLnJvb2xwcy10ZXN0LTMubWNzaC5pby9TUlZ8MzEy"}}); err != nil {
+	if err := c.DeleteRecords("peanuts.org", &SRVRecords{{ID: "dGVzdGluZy5wZWFudXRzLm9yZy9DTkFNRXw4NjQ"}}); err != nil {
+		t.Errorf("unexpected error returned: %v", err)
+	}
+}
+
+func TestCreateARecord(t *testing.T) {
+	setTestKey(t)
+	if err := c.NewRecords("peanuts.org", &ARecords{{Name: "testing-a-record", Target: "179.61.181.1"}}); err != nil {
+		t.Errorf("unexpected error returned: %v", err)
+	}
+}
+
+func TestCreateCNAMERecord(t *testing.T) {
+	setTestKey(t)
+	if err := c.NewRecords("peanuts.org", &CNAMERecords{{Name: "testing-cname-record", Target: "179.61.181.1"}}); err != nil {
 		t.Errorf("unexpected error returned: %v", err)
 	}
 }
