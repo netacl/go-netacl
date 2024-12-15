@@ -8,10 +8,17 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/fatih/color"
+
 	"github.com/roolps/logging"
 )
 
 var c = &APICLient{}
+
+var logger = &logging.Profile{
+	Color:  color.RGB(255, 128, 0),
+	Prefix: "NetACL",
+}
 
 const (
 	Application_json = "application/json"
@@ -21,7 +28,7 @@ const (
 type APICLient struct{ Secret string }
 
 func EnableDebug() {
-	logging.EnableDebug()
+	logger.EnableDebug()
 }
 
 func NewClient(apikey string) (*APICLient, error) {
@@ -46,11 +53,10 @@ func (c *APICLient) Request(endpoint, method, contentType string, body any) ([]b
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal request body: %v", err)
 		}
-		logging.Debugf("payload: %v", string(raw))
 	}
 
 	// create http request
-	logging.Debugf("%v:%v", method, endpoint)
+	logger.Debugf("%v:%v", method, endpoint)
 	req, err = http.NewRequest(method, fmt.Sprintf("https://netacl.com/api/%v", endpoint), bytes.NewBuffer(raw))
 	if err != nil {
 		return nil, err
