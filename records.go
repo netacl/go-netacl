@@ -75,13 +75,17 @@ func (r *SRVRecords) get(domain string, c *APICLient) error {
 
 	records := SRVRecords{}
 	for id, res := range result {
-		// need to find a nice way to unmarshal this payload
-		// this is nil because there is no "SRV" key, the data is just the object...
-		// rec := res.Data.SRV
-		// rec.ID = id
-		// rec.Name = res.Name
+		if res.Data.SRV != nil {
+			records = append(records, &SRVRecord{
+				ID:   id,
+				Name: res.Name,
 
-		records = append(records, &SRVRecord{ID: id, Name: res.Name})
+				Target:   res.Data.SRV.Target,
+				Port:     res.Data.SRV.Port,
+				Priority: res.Data.SRV.Priority,
+				Weight:   res.Data.SRV.Weight,
+			})
+		}
 	}
 	*r = records
 	return err
@@ -219,22 +223,22 @@ func (r *CNAMERecords) get(domain string, c *APICLient) error {
 	if err != nil {
 		return err
 	}
-	pl := map[string]*record{}
-	if err := json.Unmarshal(raw, &pl); err != nil {
+	result := map[string]*record{}
+	if err := json.Unmarshal(raw, &result); err != nil {
 		return err
 	}
-	result := CNAMERecords{}
-	for id, r := range pl {
+	records := CNAMERecords{}
+	for id, r := range result {
 		if r.Data.CNAME != "" {
 			cname := &CNAMERecord{
 				ID:     id,
 				Name:   r.Name,
 				Target: r.Data.CNAME,
 			}
-			result = append(result, cname)
+			records = append(records, cname)
 		}
 	}
-	*r = result
+	*r = records
 	return nil
 }
 
