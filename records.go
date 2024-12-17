@@ -283,5 +283,18 @@ func (r *CNAMERecords) add(domain string, c *APICLient) error {
 
 // TO DO: REMOVAL OF CNAME RECORDS
 func (r *CNAMERecords) remove(domain string, c *APICLient) error {
-	return nil
+	if r == nil {
+		return errors.New("records cannot be nil")
+	}
+	pl := []map[string]payload{}
+	for _, rec := range *r {
+		pl = append(pl, map[string]payload{
+			"Remove": {
+				ID: rec.ID,
+			},
+		})
+	}
+
+	_, err := c.Request(fmt.Sprintf("/dns/%v", domain), http.MethodPatch, Application_json, pl)
+	return err
 }
