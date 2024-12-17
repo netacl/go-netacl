@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/joho/godotenv"
-	"github.com/roolps/logging"
 )
 
 func setTestKey(t *testing.T) {
@@ -18,7 +17,7 @@ func setTestKey(t *testing.T) {
 	if c, err = NewClient(os.Getenv("NETACL_SECRET")); err != nil {
 		t.Fatalf("failed to set secret key: %v", err)
 	}
-	logging.EnableDebug()
+	logger.EnableDebug()
 }
 
 func TestRequestWithAPIClient(t *testing.T) {

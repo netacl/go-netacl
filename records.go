@@ -215,6 +215,26 @@ type CNAMERecord struct {
 
 // TO DO: GET CNAME RECORDS
 func (r *CNAMERecords) get(domain string, c *APICLient) error {
+	raw, err := c.Request(fmt.Sprintf("/dns/%v", domain), http.MethodGet, Application_json, nil)
+	if err != nil {
+		return err
+	}
+	pl := map[string]*record{}
+	if err := json.Unmarshal(raw, &pl); err != nil {
+		return err
+	}
+	result := CNAMERecords{}
+	for id, r := range pl {
+		if r.Data.CNAME != "" {
+			cname := &CNAMERecord{
+				ID:     id,
+				Name:   r.Name,
+				Target: r.Data.CNAME,
+			}
+			result = append(result, cname)
+		}
+	}
+	*r = result
 	return nil
 }
 

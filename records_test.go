@@ -3,8 +3,6 @@ package netacl
 import (
 	"log"
 	"testing"
-
-	"github.com/roolps/logging"
 )
 
 func TestGetRecords(t *testing.T) {
@@ -72,7 +70,7 @@ func TestGetBodyFromCreateSRVRecordRequest(t *testing.T) {
 	if len(r) == 0 {
 		t.Error("no records returned, expected 1")
 	}
-	logging.Debug(r[0].ID)
+	logger.Debug(r[0].ID)
 }
 
 func TestDeleteRecordsWithInvalidID(t *testing.T) {
@@ -93,8 +91,8 @@ func TestDeleteRecordsWithValidID(t *testing.T) {
 		t.Errorf("unexpected error returned: %v", err)
 	}
 	for _, rec := range *r {
-		logging.Debug(rec.ID)
-		logging.Debug(rec.Name)
+		logger.Debug(rec.ID)
+		logger.Debug(rec.Name)
 	}
 
 	if err := c.DeleteRecords("peanuts.org", &SRVRecords{{ID: "dGVzdGluZy5wZWFudXRzLm9yZy9DTkFNRXw4NjQ"}}); err != nil {
@@ -114,4 +112,13 @@ func TestCreateCNAMERecord(t *testing.T) {
 	if err := c.NewRecords("peanuts.org", &CNAMERecords{{Name: "testing-cname-record", Target: "179.61.181.1"}}); err != nil {
 		t.Errorf("unexpected error returned: %v", err)
 	}
+}
+
+func TestGetCNAMERecords(t *testing.T) {
+	setTestKey(t)
+	cnames := &CNAMERecords{}
+	if err := c.GetRecords("peanuts.org", cnames); err != nil {
+		t.Error(err)
+	}
+	logger.Debug(cnames)
 }
